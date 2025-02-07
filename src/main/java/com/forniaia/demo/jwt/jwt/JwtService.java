@@ -1,6 +1,6 @@
 package com.forniaia.demo.jwt.jwt;
 
-
+import com.forniaia.demo.jwt.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -28,11 +28,13 @@ public class JwtService {
     public String getToken(UserDetails user) {
         return getToken(new HashMap<>(), user);
     }
+
     /**
-     * aqui se ponen los datos que va a llevar el payload del jwt
+     * Aquí se ponen los datos que va a llevar el payload del jwt
      *
      * **/
     private String getToken(Map<String, Object> extraClaims, UserDetails user) {
+        extraClaims.put("role", ((User) user).getRole().name());  // Añadimos el role al token
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -49,7 +51,7 @@ public class JwtService {
     }
 
     /**
-     * metodo que recoge el username del token
+     * Método que recoge el username del token
      * **/
 
     public String getUsernameFromToken(String token) {
@@ -58,7 +60,8 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String role = getRoleFromToken(token);  // Obtenemos el role desde el token
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && role != null);
     }
 
     private Claims getAllClaims(String token) {
@@ -77,6 +80,13 @@ public class JwtService {
 
     private Date getExpiration(String token) {
         return getClaim(token, Claims::getExpiration);
+    }
+
+    /**
+     * Método que obtiene el role del token
+     **/
+    public String getRoleFromToken(String token) {
+        return getClaim(token, claims -> claims.get("role", String.class));  // Ahora obtenemos el role como String
     }
 
     private boolean isTokenExpired(String token) {

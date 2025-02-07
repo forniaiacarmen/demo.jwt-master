@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+
 import java.util.Collection;
 import java.util.List;
 
@@ -17,27 +18,42 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="user", uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
+@Table(name="user", uniqueConstraints = {@UniqueConstraint(columnNames = {"dni"})})
 public class User implements UserDetails {
+
     @Id
-    @GeneratedValue
-    Integer id;
-    @Basic
-    @Column(nullable = false)
-    String username;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;  // ID autogenerado como clave primaria
 
-    String password;
-
-    String firstname;
+    @Column(nullable = false, unique = true)
+    private String dni;  // DNI como identificador único
 
     @Column(nullable = false)
-    String lastname;
+    private String password;
 
-    String country;
+    @Column(nullable = false)
+    private String firstname;
+
+    @Column(nullable = false)
+    private String lastname;
 
     @Enumerated(EnumType.STRING)
-    Role role;
+    private Role role;
 
+//    // Auditoría
+//    @Column(nullable = false, updatable = false)
+//    private LocalDateTime createdAt;  // Fecha de creación
+//
+//    @Column
+//    private LocalDateTime updatedAt;  // Fecha de la última actualización
+//
+//    @Column(nullable = false, updatable = false)
+//    private String createdBy;  // Usuario que creó el registro
+//
+//    @Column
+//    private String updatedBy;  // Usuario que realizó la última actualización
+
+    // Métodos de UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
@@ -61,5 +77,16 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    // Si necesitas el DNI como "username" en Spring Security (autenticación), puedes sobrescribir el método `getUsername`:
+    @Override
+    public String getUsername() {
+        return dni;  // DNI actúa como el identificador para autenticación
+    }
+
+
+    public Role getRole() {
+        return role;
     }
 }
